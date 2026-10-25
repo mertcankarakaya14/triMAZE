@@ -1,0 +1,97 @@
+/*
+ * ESP32-S3 + TB6612FNG Motor Sürücü Kodu
+ * 
+ * Pin Bağlantıları:
+ *   AIN1 -> GPIO 4
+ *   AIN2 -> GPIO 5
+ *   BIN1 -> GPIO 6
+ *   BIN2 -> GPIO 7
+ *   STBY -> GPIO 8  (Sürücüyü Uyandırma Pini)
+ *   GND  -> ESP32 GND
+ *   VM   -> Motor Harici Beslemesi (4.5V - 13.5V)
+ */
+
+#define PIN_AIN1 4
+#define PIN_AIN2 5
+#define PIN_BIN1 6
+#define PIN_BIN2 7
+#define PIN_STBY 21  // Standby uyandırma pini
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  // Pinleri çıkış yap
+  pinMode(PIN_AIN1, OUTPUT);
+  pinMode(PIN_AIN2, OUTPUT);
+  pinMode(PIN_BIN1, OUTPUT);
+  pinMode(PIN_BIN2, OUTPUT);
+  pinMode(PIN_STBY, OUTPUT);
+
+  // Başlangıçta sürücüyü uyandır ve motorları durdur
+  surucuUyandir();
+  motorlariDurdur();
+
+  Serial.println("Sürücü uyandırıldı ve test döngüsü başladı.");
+}
+
+// Sürücüyü Uyandır (STBY = HIGH)
+void surucuUyandir() {
+  digitalWrite(PIN_STBY, HIGH);
+  Serial.println("-> STBY: HIGH (Sürücü Uyanık)");
+}
+
+// Sürücüyü Uyut (STBY = LOW)
+void surucuUyut() {
+  digitalWrite(PIN_STBY, LOW);
+  Serial.println("-> STBY: LOW (Sürücü Uyku Modunda)");
+}
+
+// Motor girişlerini sıfırla
+void motorlariDurdur() {
+  digitalWrite(PIN_AIN1, LOW);
+  digitalWrite(PIN_AIN2, LOW);
+  digitalWrite(PIN_BIN1, LOW);
+  digitalWrite(PIN_BIN2, LOW);
+}
+
+void loop() {
+  // 1. ADIM: Sürücüyü Uyandır
+  surucuUyandir();
+  delay(100);
+
+  // 2. ADIM: Motor A İleri
+  Serial.println("Motor A İleri");
+  digitalWrite(PIN_AIN1, HIGH);
+  digitalWrite(PIN_AIN2, LOW);
+  delay(1500);
+
+  // Motor A Geri
+  Serial.println("Motor A Geri");
+  digitalWrite(PIN_AIN1, LOW);
+  digitalWrite(PIN_AIN2, HIGH);
+  delay(1500);
+
+  motorlariDurdur();
+  delay(500);
+
+  // 3. ADIM: Motor B İleri
+  Serial.println("Motor B İleri");
+  digitalWrite(PIN_BIN1, HIGH);
+  digitalWrite(PIN_BIN2, LOW);
+  delay(1500);
+
+  // Motor B Geri
+  Serial.println("Motor B Geri");
+  digitalWrite(PIN_BIN1, LOW);
+  digitalWrite(PIN_BIN2, HIGH);
+  delay(1500);
+
+  motorlariDurdur();
+  delay(500);
+
+  // 4. ADIM: Sürücüyü Standby Moduna Alma Testi
+  Serial.println("Sürücü 2 saniye uyutuluyor (Güç tasarrufu)...");
+  surucuUyut();
+  delay(2000);
+}
